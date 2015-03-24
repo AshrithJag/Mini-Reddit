@@ -1,0 +1,53 @@
+{{extend 'layout.html'}}
+{{categ = db(db.categories.categories>0).select(db.categories.categories)}}
+<div class="navbar">
+    <div class="navbar-inner">
+        <a class="brand" href={{=URL(r=request , f="homepage")}}><span class="icon-home"></span></a>
+    <ul class="nav">
+     	<!--<li class="dropdown">
+             <a href="#" data-toggle="dropdown">Categories</a>
+                        <ul class="dropdown-menu">-->
+                            {{for j in range(len(categ)):}}
+                            <li><a href={{=URL(r=request, f="choice" , args=categ[j].categories)}}>{{=categ[j].categories}}</a></li>
+                            {{pass}}
+        <!--<li><a href={{=URL(r=request, f="justforfun")}}>Advanced Search 2</a></li>-->
+    </ul>
+    </div>
+</div>
+{{if auth.user.username != 'admin':}}
+{{if len(dc):}}
+  {{comments = db((db.comments.newsid == db.usernews.id) & (db.comments.newsid == dc[0].id)).select(db.comments.id)}}
+{{head = db((db.comments.newsid == db.usernews.id) & (db.comments.newsid == dc[0].id)).select(db.comments.heading)}}
+{{idd = db((db.comments.newsid == db.usernews.id) & (db.comments.newsid == dc[0].id)).select(db.comments.userid)}}
+{{matter = db((db.comments.newsid == db.usernews.id) & (db.comments.newsid == dc[0].id)).select(db.comments.matter)}}
+{{date = db((db.comments.newsid == db.usernews.id) & (db.comments.newsid == dc[0].id)).select(db.comments.dat)}}
+  <h2>Comments</h2><br /><p>
+  {{for i in range(len(comments)):}}
+{{x = db(db.auth_user.id == idd[i].userid).select(db.auth_user.username)}}
+    <p>{{=x[0].username}} says <i>{{=matter[i].matter}}</i></p>
+{{newdate = str(date[i].dat)[:19]}}
+<p>Posted at {{=newdate}}</p>
+  {{pass}}
+{{else:}}
+  <h2>No comments posted yet</h2>
+{{pass}}
+<h2>Post a comment</h2>
+{{=form}}
+{{elif auth.user.username == 'admin':}}
+{{if len(dc):}}
+  {{comments = db((db.comments.newsid == db.usernews.id) & (db.comments.newsid == dc[0].id)).select(db.comments.id)}}
+{{head = db((db.comments.newsid == db.usernews.id) & (db.comments.newsid == dc[0].id)).select(db.comments.heading)}}
+{{idd = db((db.comments.newsid == db.usernews.id) & (db.comments.newsid == dc[0].id)).select(db.comments.userid)}}
+{{matter = db((db.comments.newsid == db.usernews.id) & (db.comments.newsid == dc[0].id)).select(db.comments.matter)}}
+{{date = db((db.comments.newsid == db.usernews.id) & (db.comments.newsid == dc[0].id)).select(db.comments.dat)}}
+  <h2>Comments</h2><br /><p>
+  {{for i in range(len(comments)):}}
+    {{x = db(db.auth_user.id == idd[i].userid).select(db.auth_user.username)}}
+    <p>{{=x[0].username}} says <i>{{=matter[i].matter}}</i></p>
+{{newdate = str(date[i].dat)[:19]}}
+<p>Posted at {{=newdate}}</p>
+  {{pass}}
+{{else:}}
+  <h2>No comments posted yet</h2>
+{{pass}}
+{{pass}}

@@ -1,0 +1,36 @@
+{{extend 'layout.html'}}
+{{categ = db(db.categories.id>0).select(db.categories.categories)}}
+{{manid = db(db.categories.id>0).select(db.categories.id)}}
+<div class="navbar">
+    <div class="navbar-inner">
+        <a class="brand" href={{=URL(r=request , f="homepage")}}><span class="icon-home"></span></a>
+    <ul class="nav">
+     	<!--<li class="dropdown">
+             <a href="#" data-toggle="dropdown">Categories</a>
+                        <ul class="dropdown-menu">-->
+                            {{for j in range(len(categ)):}}
+                            <li><a href={{=URL(r=request, f="choice" , args=manid[j].id)}}>{{=categ[j].categories}}</a></li>
+                            {{pass}}
+        <!--<li><a href={{=URL(r=request, f="justforfun")}}>Advanced Search 2</a></li>-->
+    </ul>
+    </div>
+</div>
+{{uid = db(db.usernews.userid == auth.user.id).select(db.usernews.id)}}
+{{category = db(db.usernews.userid == auth.user.id).select(db.usernews.cat)}}
+{{heading = db(db.usernews.userid == auth.user.id).select(db.usernews.heading)}}
+{{link = db(db.usernews.userid == auth.user.id).select(db.usernews.link)}}
+{{date = db(db.usernews.userid == auth.user.id).select(db.usernews.dat)}}
+{{if len(uid) > 0:}}
+	<div style="float:left;width=50%">
+	{{for i in range(len(uid)):}}
+    	<li><a href={{=link[i].link}}><b>{{=heading[i].heading}}</b></a></li>
+		{{newdate = (date[i].dat)}}
+		<p>This post was posted at {{=newdate}}</p>
+    	<p>This belongs to the category <b><i>{{=category[i].cat}}</i></b></p>
+        <a href={{=URL(r=request, f="usredtpst" , args=uid[i].id)}} class="btn btn-primary"><i class="icon-edit"></i> Edit This Post</a>
+        <a href={{=URL(r=request, f="usrdelpst" , args=uid[i].id)}} class="btn btn-danger"><i class="icon-warning-sign"></i> Delete This Post</a>
+        {{pass}}
+        {{else:}}
+        <h3>You did not post anything yet</h3>
+        <a href={{=URL(r=request, f="userpost")}} class="btn btn-primary"><i class="icon-pencil"></i> Post a newsitem</a>
+        {{pass}}

@@ -1,0 +1,17 @@
+{{extend 'layout.html'}}
+{{categ = db(db.categories.categories>0).select(db.categories.categories)}}
+<div class="navbar">
+    <div class="navbar-inner">
+        <a class="brand" href={{=URL(r=request , f="homepage")}}><span class="icon-home"></span></a>
+    <ul class="nav">
+     	<!--<li class="dropdown">
+             <a href="#" data-toggle="dropdown">Categories</a>
+                        <ul class="dropdown-menu">-->
+                            {{for j in range(len(categ)):}}
+                            <li><a href={{=URL(r=request, f="choice" , args=categ[j].categories)}}>{{=categ[j].categories}}</a></li>
+                            {{pass}}
+        <!--<li><a href={{=URL(r=request, f="justforfun")}}>Advanced Search 2</a></li>-->
+    </ul>
+    </div>
+</div>
+{{=form}}

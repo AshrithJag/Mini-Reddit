@@ -1,0 +1,141 @@
+{{extend 'layout.html'}}
+{{id = db(db.usernews.id>0).select(db.usernews.id)}}
+{{userid = db(db.usernews.id>0).select(db.usernews.userid)}}
+{{head = db(db.usernews.id>0).select(db.usernews.heading)}}
+{{link = db(db.usernews.id>0).select(db.usernews.link)}}
+{{date = db(db.usernews.id>0).select(db.usernews.dat)}}
+{{name = db(db.usernews.id>0).select(db.usernews.name)}}
+{{catg = db(db.usernews.id > 0).select(db.usernews.cat)}}
+{{points = db(db.usernews.id>0).select(db.usernews.points)}}
+{{categ = db(db.categories.id>0).select(db.categories.categories)}}
+{{manid = db(db.categories.id>0).select(db.categories.id)}}
+<div class="navbar">
+    <div class="navbar-inner">
+        <a class="brand" href={{=URL(r=request , f="homepage")}}><span class="icon-home"></span></a>
+    <ul class="nav">
+     	<!--<li class="dropdown">
+             <a href="#" data-toggle="dropdown">Categories</a>
+                        <ul class="dropdown-menu">-->
+                            {{for j in range(len(categ)):}}
+                            <li><a href={{=URL(r=request, f="choice" , args=manid[j].id)}}>{{=categ[j].categories}}</a></li>
+                            {{pass}}
+        <!--<li><a href={{=URL(r=request, f="justforfun")}}>Advanced Search 2</a></li>-->
+    </ul>
+    </div>
+</div>
+{{if auth.user.username=='admin':}}
+<h2> Welcome , Admin </h2>
+<div style="float:left;width=50%">
+<ol>
+{{for i in range(len(id)):}}
+    {{db(id[i].id == db.usernews.id).update(points = 100)}}
+    <li><a href={{=link[i].link}}><b>{{=head[i].heading}}</b></a></li><br />
+    {{if (link[i].link)[:29]=='http://www.youtube.com/watch?':}}
+    {{link[i].link=(link[i].link)[:22]+'/v/'+(link[i].link)[31:]}}
+    <embed width='345' height='300' type="application/x-shockwave-flash" src={{=link[i].link}} /><br />
+     {{pass}}
+    <a href={{=URL(r=request , f="delpostadmin" , args=id[i].id)}} class="btn btn-primary"><i class="icon-remove"></i> Delete Post</a><br /><br />
+    {{newdate = ((date[i].dat)[:19])}}
+	<p>This post was posted at {{=newdate}}</p>
+    <p>This post was posted by {{=name[i].name}}</p>
+    <p>This belongs to the category <b><i>{{=catg[i].cat}}</i></b></p>
+    <a href={{=URL(r=request , f="cment" , args=[id[i].id])}} class="btn btn-primary"><i class="icon-comment"></i> Comments!!!</a><br /><br />
+    {{cnt1=0}}
+    {{cnt2=0}}
+    {{count1 = db(id[i].id  == db.point.newsid).select(db.point.liked)}}
+    {{for z in range(len(count1)):}}
+    {{if count1[z].liked == 1:}}
+    {{cnt1+=1}}
+    {{pass}}
+    {{pass}}
+    {{count2 = db(id[i].id == db.point.newsid).select(db.point.disliked)}}
+    {{for z in range(len(count2)):}}
+    {{if count2[z].disliked == 1:}}
+    {{cnt2+=1}}
+    {{pass}}
+    {{pass}}
+    {{x = 0}}
+    {{x = cnt1*5 - cnt2*3}}
+    {{fff = db(id[i].id == db.usernews.id).select(db.usernews.points)}}
+    {{x = x + fff[0].points}}
+    {{db(id[i].id == db.usernews.id).update(points = x)}}
+    {{ff = db(id[i].id == db.usernews.id).select(db.usernews.points)}}
+     <p>&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-arrow-up"></i>{{=cnt1}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-arrow-down"></i>{{=cnt2}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-star"></i>{{=ff[0].points}}</p>
+    {{pass}}
+</ol>
+</div>
+<div style="float:right;width=50%">
+    <a href={{=URL(r=request, f="admincat")}} class="btn btn-primary"><i class="icon-asterisk"></i> Categories</a><br /><br />
+    <a href={{=URL(r=request , f="accounts")}} class="btn btn-warning"><i class="icon-warning-sign"></i> Delete any User accounts</a>
+</div>
+{{pass}}
+{{if auth.user.username!='admin':}}
+<h4>Welcome to this website , {{=auth.user.username}}</h4>
+<p>Here , You can post a newsitem , or find out what's trending in the world</p>
+<p>So , what are you waiting for?</p>
+<h2>Get Started</h2>
+<div style="float:left;width=50%">
+<ol>
+{{for i in range(len(id)):}}
+   {{db(id[i].id == db.usernews.id).update(points = 100)}}
+    <li><a href={{=link[i].link}}><b>{{=head[i].heading}}</b></a></li>
+    {{if (link[i].link)[:29]=='http://www.youtube.com/watch?':}}
+    {{link[i].link=(link[i].link)[:22]+'/v/'+(link[i].link)[31:]}}
+    <embed width='345' height='300' type="application/x-shockwave-flash" src={{=link[i].link}} />
+     {{pass}}
+    {{newdate = ((date[i].dat)[:19])}}
+	<p>This post was posted at {{=newdate}}</p>
+    <p>This post was posted by {{=name[i].name}}</p>
+    <p>This belongs to the category <b><i>{{=catg[i].cat}}</i></b></p>
+    <a href={{=URL(r=request , f="cment" , args=[id[i].id])}} class="btn btn-primary"><i class="icon-comment"></i> Comments!!!</a><br /><br />
+    {{istam = db((db.point.userid == auth.user.id) & (db.point.newsid == id[i].id)).select(db.point.liked)}}
+    {{aishtam = db((db.point.userid == auth.user.id) & (db.point.newsid == id[i].id)).select(db.point.disliked)}}
+    {{if len(istam) == 0:}}
+    {{db.point.insert(newsid = id[i].id , userid = auth.user.id , liked = 0 , disliked = 0)}}
+    {{istam = db((db.point.userid == auth.user.id) & (db.point.newsid == id[i].id)).select(db.point.liked)}}
+    {{aishtam = db((db.point.userid == auth.user.id) & (db.point.newsid == id[i].id)).select(db.point.disliked)}}
+    {{pass}}
+    {{if len(aishtam) == 0:}}
+    {{db.point.insert(newsid = id[i].id , userid = auth.user.id , liked = 0 , disliked = 0)}}
+    {{istam = db((db.point.userid == auth.user.id) & (db.point.newsid == id[i].id)).select(db.point.liked)}}
+    {{aishtam = db((db.point.userid == auth.user.id) & (db.point.newsid == id[i].id)).select(db.point.disliked)}}
+    {{pass}}
+    {{if istam[0].liked==0 and aishtam[0].disliked==0:}}
+    <a href={{=URL(r=request , f = "calculate" , args=[auth.user.id,id[i].id , 1])}} class = "btn btn-default"><i class="icon-thumbs-up"></i> Like</a>&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href={{=URL(r=request , f = "calculate" , args=[auth.user.id,id[i].id , -1])}} class = "btn btn-default"><i class="icon-thumbs-down"></i> Dislike</a><br /><br />
+    {{elif istam[0].liked==1 and aishtam[0].disliked==0:}}
+    <a href={{=URL(r=request , f = "calculate" , args=[auth.user.id,id[i].id , 0])}} class = "btn btn-success"><i class="icon-thumbs-up"></i> Liked</a>&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href={{=URL(r=request , f = "calculate" , args=[auth.user.id,id[i].id , -1])}} class = "btn btn-default"><i class="icon-thumbs-down"></i> Dislike</a><br /><br />
+    {{elif istam[0].liked==0 and aishtam[0].disliked==1:}}
+    <a href={{=URL(r=request , f = "calculate" , args=[auth.user.id,id[i].id , 1])}} class = "btn btn-default"><i class="icon-thumbs-up"></i> Like</a>&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href={{=URL(r=request , f = "calculate" , args=[auth.user.id,id[i].id , 0])}} class = "btn btn-danger"><i class="icon-thumbs-down"></i> Disliked</a><br /><br />
+    {{pass}}
+	{{cnt1=0}}
+    {{cnt2=0}}
+    {{count1 = db(id[i].id  == db.point.newsid).select(db.point.liked)}}
+    {{for z in range(len(count1)):}}
+    {{if count1[z].liked == 1:}}
+    {{cnt1+=1}}
+    {{pass}}
+    {{pass}}
+    {{count2 = db(id[i].id == db.point.newsid).select(db.point.disliked)}}
+    {{for z in range(len(count2)):}}
+    {{if count2[z].disliked == 1:}}
+    {{cnt2+=1}}
+    {{pass}}
+    {{pass}}
+    {{x = 0}}
+    {{x = cnt1*5 - cnt2*3}}
+    {{fff = db(id[i].id == db.usernews.id).select(db.usernews.points)}}
+    {{x = x + fff[0].points}}
+    {{db(id[i].id == db.usernews.id).update(points = x)}}
+    {{ff = db(id[i].id == db.usernews.id).select(db.usernews.points)}}
+     <p>&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-arrow-up"></i>{{=cnt1}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-arrow-down"></i>{{=cnt2}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-star"></i>{{=ff[0].points}}</p>
+    {{pass}}
+</ol>
+</div>
+<div style="float:right;width=50%">
+	<a href={{=URL(r=request, f="userpost")}} class="btn btn-primary"><i class="icon-pencil"></i> Post a newsitem</a>
+	<a href={{=URL(r=request , f="viewpost")}} class="btn btn-primary"><i class="icon-edit"></i> View/Edit your posts</a>
+</div>
+{{pass}}

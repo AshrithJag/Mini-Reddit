@@ -1,0 +1,162 @@
+{{extend 'layout.html'}}
+{{categ=db(db.categories.id>0).select(db.categories.categories)}}
+{{manid = db(db.categories.id>0).select(db.categories.id)}}
+<div class="navbar">
+    <div class="navbar-inner">
+        <a class="brand" href={{=URL(r=request , f="homepage")}}><i class="icon-home"></i></a>
+    <ul class="nav">
+                            {{for j in range(len(categ)):}}
+            {{if categ[j].categories == iid[0].categories:}}
+                            <li class="active"><a href={{=URL(r=request, f="choice" , args=manid[j].id)}}>{{=categ[j].categories}}</a></li>
+        {{else:}}
+                            <li><a href={{=URL(r=request, f="choice" , args=manid[j].id)}}>{{=categ[j].categories}}</a></li>
+        {{pass}}
+                            {{pass}}
+                        </ul>
+        <!--<li><a href={{=URL(r=request, f="justforfun")}}>Advanced Search 2</a></li>-->
+    </div>
+</div>
+{{k = db(iid[0].categories == db.usernews.cat).select(db.usernews.cat)}}
+{{if len(k)>0:}}
+{{ids = db((db.usernews.id > 0) & (db.usernews.cat == iid[0].categories)).select(db.usernews.id , orderby=~db.usernews.points)}}
+{{for h in range(len(ids)):}}
+{{db(ids[h].id == db.usernews.id).update(points = 100)}}
+    {{cnt1=0}}
+    {{cnt2=0}}
+    {{count1 = db(ids[h].id  == db.point.newsid).select(db.point.liked)}}
+    {{for z in range(len(count1)):}}
+    {{if count1[z].liked == 1:}}
+    {{cnt1+=1}}
+    {{pass}}
+    {{pass}}
+    {{count2 = db(ids[h].id == db.point.newsid).select(db.point.disliked)}}
+    {{for z in range(len(count2)):}}
+    {{if count2[z].disliked == 1:}}
+    {{cnt2+=1}}
+    {{pass}}
+    {{pass}}
+    {{x = 0}}
+    {{x = cnt1*5 - cnt2*3}}
+    {{fff = db(ids[h].id == db.usernews.id).select(db.usernews.points)}}
+    {{x = x + fff[0].points}}
+    {{db(ids[h].id == db.usernews.id).update(points = x)}}
+{{pass}}
+{{all = db((db.usernews.id>0) & (db.usernews.cat == iid[0].categories)).select(db.usernews.ALL , orderby = ~db.usernews.points)}}
+{{if auth.user.username == 'admin':}}
+<div style="float:left;width=50%">
+<ol>
+{{for ind in all:}}
+    <li><a href={{=ind['link']}}><b>{{=ind['heading']}}</b></a></li>
+    {{if (ind['link'])[:29]=='http://www.youtube.com/watch?':}}
+    {{ind['link']=(ind['link'])[:22]+'/v/'+(ind['link'])[31:]}}
+    <embed width='345' height='300' type="application/x-shockwave-flash" src={{=ind['link']}} /><br />
+     {{pass}}
+    <a href={{=URL(r=request , f="delpostadmin" , args=ind['id'])}} class="btn btn-primary"><i class="icon-remove"></i> Delete Post</a>
+    {{newdate = (ind['dat'][:19])}}
+	<p>This post was posted at {{=newdate}}</p>
+    <p>This post was posted by {{=ind['name']}}</p>
+    <a href={{=URL(r=request , f="cment" , args=[ind['id']])}} class="btn btn-primary"><i class="icon-comment"></i> Comments!!!</a><br /><br />
+    {{cnt1=0}}
+    {{cnt2=0}}
+    {{count1 = db(ind['id']  == db.point.newsid).select(db.point.liked)}}
+    {{for z in range(len(count1)):}}
+    {{if count1[z].liked == 1:}}
+    {{cnt1+=1}}
+    {{pass}}
+    {{pass}}
+    {{count2 = db(ind['id'] == db.point.newsid).select(db.point.disliked)}}
+    {{for z in range(len(count2)):}}
+    {{if count2[z].disliked == 1:}}
+    {{cnt2+=1}}
+    {{pass}}
+    {{pass}}
+    {{ff = db(ind['id'] == db.usernews.id).select(db.usernews.points)}}
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-arrow-up"></i>{{=cnt1}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-arrow-down"></i>{{=cnt2}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-star"></i>{{=ff[0].points}}</p>
+{{pass}}
+</ol>
+</div>
+<div style="float:right;width=50%">
+    <a href={{=URL(r=request, f="admincat")}} class="btn btn-primary"><i class="icon-asterisk"></i> Categories</a><br /><br />
+    <a href={{=URL(r=request , f="accounts")}} class="btn btn-warning"><i class="icon-warning-sign"></i> Delete any User accounts</a>
+</div>
+    {{else:}}
+<div style="float:left;width=50%">
+<ol>
+{{for ind in all:}}
+    <li><a href={{=ind['link']}}><b>{{=ind['heading']}}</b></a></li>
+    {{if (ind['link'])[:29]=='http://www.youtube.com/watch?':}}
+    {{ind['link']=(ind['link'])[:22]+'/v/'+(ind['link'])[31:]}}
+    <embed width='345' height='300' type="application/x-shockwave-flash" src={{=ind['link']}} />
+     {{pass}}
+    {{newdate = (ind['dat'][:19])}}
+	<p>This post was posted at {{=newdate}}</p>
+    <p>This post was posted by {{=ind['name']}}</p>
+    <a href={{=URL(r=request , f="cment" , args=[ind['id']])}} class="btn btn-primary"><i class="icon-comment"></i> Comments!!!</a><br /><br />
+    {{istam = db((db.point.userid == auth.user.id) & (db.point.newsid == ind['id'])).select(db.point.liked)}}
+    {{aishtam = db((db.point.userid == auth.user.id) & (db.point.newsid == ind['id'])).select(db.point.disliked)}}
+    {{if len(istam) == 0:}}
+    {{db.point.insert(newsid = ind['id'] , userid = auth.user.id , liked = 0 , disliked = 0)}}
+    {{istam = db((db.point.userid == auth.user.id) & (db.point.newsid == ind['id'])).select(db.point.liked)}}
+    {{aishtam = db((db.point.userid == auth.user.id) & (db.point.newsid == ind['id'])).select(db.point.disliked)}}
+    {{pass}}
+    {{if len(aishtam) == 0:}}
+    {{db.point.insert(newsid = ind['id'] , userid = auth.user.id , liked = 0 , disliked = 0)}}
+    {{istam = db((db.point.userid == auth.user.id) & (db.point.newsid == ind['id'])).select(db.point.liked)}}
+    {{aishtam = db((db.point.userid == auth.user.id) & (db.point.newsid == ind['id'])).select(db.point.disliked)}}
+    {{pass}}
+    {{if istam[0].liked==0 and aishtam[0].disliked==0:}}
+    <a href={{=URL(r=request , f = "cal1" , args=[auth.user.id,ind['id'] , 1])}} class = "btn btn-default"><i class="icon-thumbs-up"></i> Like</a>&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href={{=URL(r=request , f = "cal1" , args=[auth.user.id,ind['id'] , -1])}} class = "btn btn-default"><i class="icon-thumbs-down"></i> Dislike</a><br /><br />
+    {{elif istam[0].liked==1 and aishtam[0].disliked==0:}}
+    <a href={{=URL(r=request , f = "cal1" , args=[auth.user.id,ind['id'] , 0])}} class = "btn btn-success"><i class="icon-thumbs-up"></i> Liked</a>&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href={{=URL(r=request , f = "cal1" , args=[auth.user.id,ind['id'] , -1])}} class = "btn btn-default"><i class="icon-thumbs-down"></i> Dislike</a><br /><br />
+    {{elif istam[0].liked==0 and aishtam[0].disliked==1:}}
+    <a href={{=URL(r=request , f = "cal1" , args=[auth.user.id,ind['id'] , 1])}} class = "btn btn-default"><i class="icon-thumbs-up"></i> Like</a>&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href={{=URL(r=request , f = "cal1" , args=[auth.user.id,ind['id'] , 0])}} class = "btn btn-danger"><i class="icon-thumbs-down"></i> Disliked</a><br /><br />
+    {{pass}}
+    {{cnt1=0}}
+    {{cnt2=0}}
+    {{count1 = db(ind['id']  == db.point.newsid).select(db.point.liked)}}
+    {{for z in range(len(count1)):}}
+    {{if count1[z].liked == 1:}}
+    {{cnt1+=1}}
+    {{pass}}
+    {{pass}}
+    {{count2 = db(ind['id'] == db.point.newsid).select(db.point.disliked)}}
+    {{for z in range(len(count2)):}}
+    {{if count2[z].disliked == 1:}}
+    {{cnt2+=1}}
+    {{pass}}
+    {{pass}}
+    {{ff = db(ind['id'] == db.usernews.id).select(db.usernews.points)}}
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-arrow-up"></i>{{=cnt1}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-arrow-down"></i>{{=cnt2}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="icon-star"></i>{{=ff[0].points}}</p>
+{{pass}}
+</ol>
+</div>
+<div style="float:right;width=50%">
+	<a href={{=URL(r=request, f="userpost")}} class="btn btn-primary"><i class="icon-pencil"></i> Post a newsitem</a>
+    <a href={{=URL(r=request , f="viewpost")}} class="btn btn-primary"><i class="icon-edit"></i> View/Edit your posts</a>
+</div>
+{{pass}}
+{{else:}}
+{{if auth.user.username=='admin':}}
+<h3>No posts yet in this Category</h3>
+<div style="float:right;width=50%">
+    <a href={{=URL(r=request, f="admincat")}} class="btn btn-primary"><i class="icon-asterisk"></i> Categories</a><br /><br />
+    <a href={{=URL(r=request , f="accounts")}} class="btn btn-warning"><i class="icon-warning-sign"></i> Delete any User accounts</a>
+</div>
+{{else:}}
+<h3>No posts yet in this Category</h3>
+<div style="float:right;width=50%">
+	<a href={{=URL(r=request, f="userpost")}} class="btn btn-primary"><i class="icon-pencil"></i> Post a newsitem</a>
+    <a href={{=URL(r=request , f="viewpost")}} class="btn btn-primary"><i class="icon-edit"></i> View/Edit your posts</a>
+</div>
+{{pass}}
+{{pass}}
+<!--<div class="btn-toolbar" id="1">
+  <button type="button" class="btn btn-default">Like</button>
+  <button type="button" class="btn btn-default">Dislike</button>
+</div>
+
+    <a href={{=URL(r=request , f="like")}} class="btn btn-primary">Like</a>
+    <a href={{=URL(r=request , f="dislike")}} class="btn btn-primary">DisLike</a>-->
